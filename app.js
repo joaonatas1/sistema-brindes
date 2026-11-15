@@ -865,8 +865,9 @@ function vVale(g, soLeitura) {
     <span class="corpo"><strong>${esc(g.brinde)}</strong><span class="quem">${esc(g.nome || 'Sem nome')}</span><span class="meta">${pill(g)}<span>gerado em ${fData(g.criadoEm)}</span></span></span></span>`;
   return soLeitura ? `<span class="vale vale-sel">${miolo}</span>` : `<button class="vale" data-act="abrir" data-id="${esc(g.codigo)}">${miolo}</button>`;
 }
-function dadosDe(g, completo, usado) {
+function dadosDe(g, completo, usado, semNome) {
   const linhas = [['Ganhador', g.nome || 'Sem nome'], ['Telefone', g.telefone || 'Não informado'], ['Código', g.codigo], [usado ? 'Era válido até' : 'Válido até', fData(g.validoAte)]];
+  if (semNome) linhas.shift();
   if (g.motivo) linhas.push(['Motivo', g.motivo]);
   if ((g.usos || 1) > 1) linhas.push(['Usos', `${(g.resgates || []).length} de ${g.usos}`]);
   if (completo) linhas.push(['Gerado', fDH(g.criadoEm) + (g.criadoPor ? ', por ' + g.criadoPor : '')]);
@@ -879,8 +880,7 @@ function vVeredito(r) {
   const g = r.g;
   if (r.tipo === 'ok') {
     const f = g.resgates.length;
-    return `<section class="veredito ok" role="status"><span class="selo-v">Válido · marcado como usado</span><p class="premio">${esc(g.brinde)}</p>${dadosDe(g)}
-      <p class="confira">Confira o nome e o telefone antes de entregar.</p>
+    return `<section class="veredito ok" role="status" aria-label="Confirmado"><div class="ok-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><p class="premio">${esc(g.brinde)}</p><p class="quem-grande"><span>Ganhador</span>${esc(g.nome || 'Sem nome')}</p>${dadosDe(g, false, false, true)}
       <p>Entregue por ${esc(r.reg.por)} em ${fDH(r.reg.em)}.${(g.usos || 1) > 1 ? ` Uso ${f} de ${g.usos}.` : ''}</p>
       <div class="acoes"><button class="btn pri" data-act="ler-limpar">Ler outro</button><button class="btn" data-act="desfazer" data-id="${esc(g.codigo)}" data-em="${esc(r.reg.em)}">Desfazer</button></div></section>`;
   }

@@ -608,7 +608,48 @@ function sair(msg) {
   document.documentElement.style.removeProperty('--brand'); document.documentElement.style.removeProperty('--on-brand');
   S.login.pin = ''; render();
 }
+let VERSAO_BASE = null;
+function hashTexto(s) { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return h + ':' + s.length; }
+async function versaoAtual() {
+  const [js, pagina] = await Promise.all([
+    fetch('/app.js', {cache: 'no-store'}).then(r => r.text()),
+    fetch('/', {cache: 'no-store'}).then(r => r.text())
+  ]);
+  return hashTexto(js) + '|' + hashTexto(pagina);
+}
+function podeRecarregarSozinho() {
+  const ae = document.activeElement;
+  if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return false;
+  if (S.ler.res || S.ler.ocupado || S.login.ocupado || S.login.pin || S.gerar.feitos || S.sheet) return false;
+  return true;
+}
+function avisaNovaVersao() {
+  if (podeRecarregarSozinho()) { location.reload(); return; }
+  if (document.getElementById('aviso-versao')) return;
+  const d = document.createElement('div');
+  d.id = 'aviso-versao';
+  d.setAttribute('role', 'status');
+  d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#1c1c1c;color:#fff;padding:14px 16px;text-align:center;font-weight:600;font-size:15px;cursor:pointer';
+  d.textContent = 'Há uma atualização do sistema. Toque aqui para atualizar.';
+  d.onclick = () => location.reload();
+  document.body.appendChild(d);
+}
+async function verificarVersao() {
+  if (document.hidden) return;
+  try {
+    const v = await versaoAtual();
+    if (VERSAO_BASE === null) { VERSAO_BASE = v; return; }
+    if (v !== VERSAO_BASE) avisaNovaVersao();
+  } catch (e) { /* sem internet: tenta de novo depois */ }
+}
+function ligarVersao() {
+  verificarVersao();
+  setInterval(verificarVersao, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) verificarVersao(); });
+}
+
 function ligarAtualizacao() {
+  ligarVersao();
   setInterval(async () => {
     if (!S.sess || (S.sheet && S.sheet.modo) || document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
     try { await carregarGifts(); suave(); } catch (e) { if (e.code === 'sessao_invalida') sair(MSG.sessao_invalida); }

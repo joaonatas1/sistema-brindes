@@ -690,7 +690,7 @@ function vEntrada() {
     }
     corpo += S.dono
       ? '<button class="link" data-act="pin-voltar-painel">Voltar ao Painel geral</button>'
-      : '<button class="link" data-act="painel-abrir">Painel geral (dono)</button>';
+      : '<button class="link" data-act="painel-abrir">Painel geral</button>';
   }
   return '<div class="wrap"><header class="abertura"><h1>Sistema de Brindes</h1><p>Gere, envie e valide brindes com QR Code.</p></header>' + vNota() + corpo + '</div>';
 }

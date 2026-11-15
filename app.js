@@ -371,6 +371,7 @@ const S = {
   ler: {res: null, codigo: '', busca: '', ocupado: false},
   hist: {filtro: 'todos', busca: '', selModo: false, sel: [], motivo: '', ocupado: false},
   painel: {periodo: 30},
+  painelBusca: '',
   novoM: {nome: '', pin: '', nivel: 'equipe'}, trocaPin: {id: null, pin: ''}
 };
 const getP = p => p.split('.').reduce((o, k) => (o == null ? o : o[k]), S);
@@ -700,6 +701,7 @@ function vPainelEntrar() {
     <input class="in" id="b-login-senhaPainel" data-bind="login.senhaPainel" type="password" autocomplete="off" placeholder="Senha" value="${esc(S.login.senhaPainel || '')}">
     ${vErro()}<div class="acoes"><button class="btn pri" data-act="painel-entrar" ${S.login.ocupado ? 'disabled' : ''}>Entrar</button></div></section>`;
 }
+function semAcento(t) { return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
 function vPainelGeral() {
   const d = S.dono;
   if (d.excluir) {
@@ -707,9 +709,16 @@ function vPainelGeral() {
     if (e) return vExcluirPainel(e);
     d.excluir = null;
   }
-  const lista = S.estabs.length
-    ? S.estabs.map(e => `<div class="linha-estab"><div><strong>${esc(e.nome)}</strong><br><small>${esc(e.prefixo)} · ${e.temAdmin ? 'com administrador' : 'sem administrador ainda'}</small>${e.slug ? `<br><small class="link-txt">${esc(linkDe(e.slug))}</small>` : '<br><small>Sem link ainda</small>'}</div><div class="acoes">${e.slug ? `<button class="btn" data-act="painel-copiar" data-id="${esc(e.id)}">Copiar link</button>` : `<button class="btn" data-act="painel-gerar-link" data-id="${esc(e.id)}">Gerar link</button>`}<button class="btn pri" data-act="painel-abrir-estab" data-id="${esc(e.id)}">Entrar</button><button class="btn danger" data-act="painel-excluir" data-id="${esc(e.id)}">Excluir</button></div></div>`).join('')    : '<p>Nenhum estabelecimento cadastrado ainda.</p>';
-  return `<section class="card"><h2>Painel geral</h2><div class="acoes"><button class="btn pri" data-act="painel-novo">Cadastrar estabelecimento</button></div>${vErro()}${lista}<button class="link" data-act="painel-sair">Sair do Painel geral</button></section>`;
+  return `<section class="card"><h2>Painel geral</h2><div class="acoes"><button class="btn pri" data-act="painel-novo">Cadastrar estabelecimento</button></div>${vErro()}
+    <div class="grupo"><input class="in" id="b-painel-busca" data-bind="painelBusca" data-live="painel" type="search" placeholder="Buscar estabelecimento pelo nome" autocomplete="off" aria-label="Buscar estabelecimento" value="${esc(S.painelBusca || '')}"></div>
+    <div id="painelLista">${vPainelLista()}</div><button class="link" data-act="painel-sair">Sair do Painel geral</button></section>`;
+}
+function vPainelLista() {
+  if (!S.estabs.length) return '<p>Nenhum estabelecimento cadastrado ainda.</p>';
+  const busca = semAcento(S.painelBusca).trim();
+  const filtrados = S.estabs.filter(e => semAcento(e.nome + ' ' + e.prefixo).includes(busca));
+  if (!filtrados.length) return '<p>Nenhum estabelecimento com esse nome.</p>';
+  return filtrados.map(e => `<div class="linha-estab"><div><strong>${esc(e.nome)}</strong><br><small>${esc(e.prefixo)} · ${e.temAdmin ? 'com administrador' : 'sem administrador ainda'}</small>${e.slug ? `<br><small class="link-txt">${esc(linkDe(e.slug))}</small>` : '<br><small>Sem link ainda</small>'}</div><div class="acoes">${e.slug ? `<button class="btn" data-act="painel-copiar" data-id="${esc(e.id)}">Copiar link</button>` : `<button class="btn" data-act="painel-gerar-link" data-id="${esc(e.id)}">Gerar link</button>`}<button class="btn pri" data-act="painel-abrir-estab" data-id="${esc(e.id)}">Entrar</button><button class="btn danger" data-act="painel-excluir" data-id="${esc(e.id)}">Excluir</button></div></div>`).join('');
 }
 function vExcluirPainel(e) {
   return `<section class="card"><h2>Excluir ${esc(e.nome)}?</h2><p>O estabelecimento, a equipe e todos os brindes gerados nele são apagados. Os códigos deixam de funcionar. Isso não pode ser desfeito.</p>${vErro()}<div class="acoes"><button class="btn" data-act="painel-excluir-nao">Manter</button><button class="btn danger" data-act="painel-excluir-sim" data-id="${esc(e.id)}">Excluir de vez</button></div></section>`;
@@ -819,7 +828,7 @@ function vLer() {
   return `${L.res ? vVeredito(L.res) : ''}
   <section class="card">${leitor}
     <input class="vh" type="file" id="qrFile" accept="image/*" capture="environment" data-file="qr" tabindex="-1" aria-hidden="true">
-    <p class="dica">${aoVivo ? 'Aponte a câmera para o QR Code do cliente.' : 'A câmera abre para você fotografar o QR Code do cliente. O brinde é marcado como usado assim que o código é lido.'}</p></section>
+    ${aoVivo ? '' : '<p class="dica">A câmera abre para você fotografar o QR Code do cliente. O brinde é marcado como usado assim que o código é lido.</p>'}</section>
   <section class="card"><h2>Digitar o código</h2>
     <div class="cod-linha"><span class="prefixo">${esc(e.prefixo)}-</span><input class="in" id="b-ler-codigo" data-bind="ler.codigo" data-kind="cod" value="${esc(L.codigo)}" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Os 4 caracteres do código" placeholder="7K3P"><button class="btn pri" data-act="validar">Validar</button></div>
     <div class="simbolos"><span class="dica">Símbolos:</span>${[...'@#$%&'].map(s => `<button data-act="simb" data-s="${esc(s)}" aria-label="Inserir ${esc(s)}">${esc(s)}</button>`).join('')}</div></section>
@@ -991,7 +1000,8 @@ function suave() {
 const LIVE = {
   lerBusca() { const el = $('#lerBusca'); if (el) el.innerHTML = vBuscaLista(); },
   hist() { const el = $('#histLista'); if (el) el.innerHTML = vHistLista(); },
-  cfgPrev
+  cfgPrev,
+  painel() { const el = $('#painelLista'); if (el) el.innerHTML = vPainelLista(); }
 };
 document.addEventListener('input', ev => {
   const t = ev.target, p = t.dataset && t.dataset.bind; if (!p) return;

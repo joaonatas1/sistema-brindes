@@ -752,6 +752,7 @@ function vPainelGeral() {
   }
   return `<section class="card"><h2>Painel geral</h2><div class="acoes"><button class="btn pri" data-act="painel-novo">Cadastrar estabelecimento</button></div>${vErro()}
     <div class="grupo"><input class="in" id="b-painel-busca" data-bind="painelBusca" data-live="painel" type="search" placeholder="Buscar estabelecimento pelo nome" autocomplete="off" aria-label="Buscar estabelecimento" value="${esc(S.painelBusca || '')}"></div>
+    ${vCopia()}
     <div id="painelLista">${vPainelLista()}</div><button class="link" data-act="painel-sair">Sair do Painel geral</button></section>`;
 }
 function vPainelLista() {
@@ -1122,7 +1123,49 @@ function baixarArquivo(blob, nome) {
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
 }
+const COPIA_KEY = 'brindes.ultimaCopia';
+function ultimaCopia() { try { return Number(localStorage.getItem(COPIA_KEY)) || 0; } catch (e) { return 0; } }
+function marcaCopia() { try { localStorage.setItem(COPIA_KEY, String(Date.now())); } catch (e) { /* sem armazenamento: sem lembrete */ } }
+function vCopia() {
+  const u = ultimaCopia();
+  const dias = u ? Math.floor((Date.now() - u) / 864e5) : null;
+  const aviso = dias === null
+    ? 'Nenhuma cópia enviada deste aparelho ainda.'
+    : (dias >= 7 ? `Faz ${dias} dias desde a última cópia. Vale enviar uma nova.` : (dias === 0 ? 'Última cópia enviada hoje.' : `Última cópia há ${dias} ${dias === 1 ? 'dia' : 'dias'}.`));
+  return `<div class="copia"><p class="dica">${aviso}</p><div class="acoes"><button class="btn" data-act="painel-copia">Enviar cópia por e-mail</button></div></div>`;
+}
+async function enviarCopia() {
+  const [es, bs] = await Promise.all([fdb.collection('estabs').get(), fdb.collection('brindes').get()]);
+  const nomes = {};
+  es.docs.forEach(d => { nomes[d.id] = d.data().nome || ''; });
+  const cabE = ['ID', 'Estabelecimento', 'Prefixo', 'Link'];
+  const linhasE = es.docs.map(d => { const x = d.data(); return [d.id, x.nome || '', x.prefixo || '', x.slug ? location.origin + location.pathname + '?local=' + encodeURIComponent(x.slug) : '']; });
+  const cabB = ['Código', 'Estabelecimento', 'Brinde', 'Motivo', 'Ganhador', 'Telefone', 'Usos permitidos', 'Usos feitos', 'Entregas', 'Gerado em', 'Gerado por', 'Válido até', 'Cancelado em', 'Cancelado por', 'Motivo do cancelamento'];
+  const linhasB = bs.docs.map(d => {
+    const x = d.data(), rs = x.resgates || [], c = x.cancelado || null;
+    return [x.codigo || d.id, nomes[x.estab_id] || '', x.brinde || '', x.motivo || '', x.nome || '', x.telefone || '', x.usos || 1, rs.length,
+      rs.map(r => (r.em || '') + ' por ' + (r.por || '')).join('; '), x.criado_em || '', x.criado_por || '', x.valido_ate || '',
+      c ? (c.em || '') : '', c ? (c.por || '') : '', c ? (c.motivo || '') : ''];
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([cabE].concat(linhasE)), 'Estabelecimentos');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([cabB].concat(linhasB)), 'Brindes');
+  const buf = XLSX.write(wb, {bookType: 'xlsx', type: 'array'});
+  const nome = `copia-brindes-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const arq = new File([buf], nome, {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  if (navigator.canShare && navigator.canShare({files: [arq]})) {
+    try { await navigator.share({files: [arq], title: 'Cópia dos brindes', text: 'Cópia de segurança dos brindes'}); marcaCopia(); toast('Cópia enviada.'); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  baixarArquivo(new Blob([buf]), nome); marcaCopia(); toast('Cópia baixada. Anexe o arquivo no seu e-mail.');
+}
 const A = {
+  async 'painel-copia'() {
+    S.erro = '';
+    try { await enviarCopia(); }
+    catch (err) { S.erro = 'Não foi possível gerar a cópia agora. Tente de novo em instantes.'; }
+    render();
+  },
   'novo-estab'() { S.login.modo = 'novo'; S.novo = {nome: '', prefixo: '', admin: '', pin: '', senha: ''}; render(); },
   'voltar-entrada'() { S.login.modo = 'pin'; S.erro = ''; render(); },
   'painel-abrir'() {

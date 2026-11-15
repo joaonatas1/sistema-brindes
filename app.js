@@ -865,8 +865,8 @@ function vVale(g, soLeitura) {
     <span class="corpo"><strong>${esc(g.brinde)}</strong><span class="quem">${esc(g.nome || 'Sem nome')}</span><span class="meta">${pill(g)}<span>gerado em ${fData(g.criadoEm)}</span></span></span></span>`;
   return soLeitura ? `<span class="vale vale-sel">${miolo}</span>` : `<button class="vale" data-act="abrir" data-id="${esc(g.codigo)}">${miolo}</button>`;
 }
-function dadosDe(g, completo) {
-  const linhas = [['Ganhador', g.nome || 'Sem nome'], ['Telefone', g.telefone || 'Não informado'], ['Código', g.codigo], ['Válido até', fData(g.validoAte)]];
+function dadosDe(g, completo, usado) {
+  const linhas = [['Ganhador', g.nome || 'Sem nome'], ['Telefone', g.telefone || 'Não informado'], ['Código', g.codigo], [usado ? 'Era válido até' : 'Válido até', fData(g.validoAte)]];
   if (g.motivo) linhas.push(['Motivo', g.motivo]);
   if ((g.usos || 1) > 1) linhas.push(['Usos', `${(g.resgates || []).length} de ${g.usos}`]);
   if (completo) linhas.push(['Gerado', fDH(g.criadoEm) + (g.criadoPor ? ', por ' + g.criadoPor : '')]);
@@ -884,7 +884,7 @@ function vVeredito(r) {
       <p>Entregue por ${esc(r.reg.por)} em ${fDH(r.reg.em)}.${(g.usos || 1) > 1 ? ` Uso ${f} de ${g.usos}.` : ''}</p>
       <div class="acoes"><button class="btn pri" data-act="ler-limpar">Ler outro</button><button class="btn" data-act="desfazer" data-id="${esc(g.codigo)}" data-em="${esc(r.reg.em)}">Desfazer</button></div></section>`;
   }
-  if (r.tipo === 'entregue') return `<section class="veredito warn" role="status"><span class="selo-v">Já utilizado</span><p class="premio">${esc(g.brinde)}</p>${vEntregas(g)}${dadosDe(g)}${outro}</section>`;
+  if (r.tipo === 'entregue') return `<section class="veredito warn" role="status"><span class="selo-v">Já utilizado</span><p class="premio">${esc(g.brinde)}</p>${vEntregas(g)}${dadosDe(g, false, true)}${outro}</section>`;
   if (r.tipo === 'vencido') return `<section class="veredito warn" role="status"><span class="selo-v">Vencido em ${fData(g.validoAte)}</span><p class="premio">${esc(g.brinde)}</p>${dadosDe(g)}${outro}</section>`;
   return `<section class="veredito bad" role="status"><span class="selo-v">Cancelado</span><p class="premio">${esc(g.brinde)}</p><p>Cancelado em ${fDH(g.cancelado.em)}, por ${esc(g.cancelado.por)}.${g.cancelado.motivo ? ' Motivo: ' + esc(g.cancelado.motivo) + '.' : ''}</p>${dadosDe(g)}${outro}</section>`;
 }

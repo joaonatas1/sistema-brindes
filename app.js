@@ -603,6 +603,7 @@ async function entrarComSessao(res) {
 function sair(msg) {
   S.sess = null; guarda('brindes.sessao', null); S.gifts = []; S.est = null; S.membros = []; S.sheet = null; S.cfg = null; S.cfgSujo = false;
   if (msg) S.nota = msg;
+  if (S.dono) S.login.modo = 'painel';
   document.documentElement.style.removeProperty('--brand'); document.documentElement.style.removeProperty('--on-brand');
   S.login.pin = ''; render();
 }
@@ -673,9 +674,9 @@ function vEntradaLink() {
 function vEntrada() {
   if (LINK_LOCAL) return vEntradaLink();
   const L = S.login; let corpo;
-  if (L.modo === 'painel-entrar') corpo = vPainelEntrar();
-  else if (S.dono && L.modo === 'painel') corpo = vPainelGeral();
-  else if (S.dono && L.modo === 'novo') corpo = vNovoEstab();
+  if (!S.dono) corpo = vPainelEntrar();
+  else if (L.modo === 'painel') corpo = vPainelGeral();
+  else if (L.modo === 'novo') corpo = vNovoEstab();
   else {
     if (!S.estabs.length) {
       corpo = S.estabsOk
@@ -690,14 +691,14 @@ function vEntrada() {
     }
     corpo += S.dono
       ? '<button class="link" data-act="pin-voltar-painel">Voltar ao Painel geral</button>'
-      : '<button class="link" data-act="painel-abrir">Painel geral</button>';
+      : '<button class="link" data-act="painel-abrir">Painel geral (dono)</button>';
   }
   return '<div class="wrap"><header class="abertura"><h1>Sistema de Brindes</h1><p>Gere, envie e valide brindes com QR Code.</p></header>' + vNota() + corpo + '</div>';
 }
 function vPainelEntrar() {
   return `<section class="card"><h2>Painel geral</h2><p class="dica">Área do dono. Aqui se cadastram e excluem estabelecimentos.</p>
     ${campo('login.senhaPainel', 'Senha do dono', 'type="password" autocomplete="off"')}
-    ${vErro()}<div class="acoes"><button class="btn" data-act="voltar-entrada">Voltar</button><button class="btn pri" data-act="painel-entrar" ${S.login.ocupado ? 'disabled' : ''}>Entrar</button></div></section>`;
+    ${vErro()}<div class="acoes"><button class="btn pri" data-act="painel-entrar" ${S.login.ocupado ? 'disabled' : ''}>Entrar</button></div></section>`;
 }
 function vPainelGeral() {
   const d = S.dono;

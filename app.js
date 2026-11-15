@@ -718,7 +718,23 @@ function vPainelLista() {
   const busca = semAcento(S.painelBusca).trim();
   const filtrados = S.estabs.filter(e => semAcento(e.nome + ' ' + e.prefixo).includes(busca));
   if (!filtrados.length) return '<p>Nenhum estabelecimento com esse nome.</p>';
-  return filtrados.map(e => `<div class="linha-estab"><div><strong>${esc(e.nome)}</strong><br><small>${esc(e.prefixo)} · ${e.temAdmin ? 'com administrador' : 'sem administrador ainda'}</small>${e.slug ? `<br><small class="link-txt">${esc(linkDe(e.slug))}</small>` : '<br><small>Sem link ainda</small>'}</div><div class="acoes">${e.slug ? `<button class="btn" data-act="painel-copiar" data-id="${esc(e.id)}">Copiar link</button>` : `<button class="btn" data-act="painel-gerar-link" data-id="${esc(e.id)}">Gerar link</button>`}<button class="btn pri" data-act="painel-abrir-estab" data-id="${esc(e.id)}">Entrar</button><button class="btn danger" data-act="painel-excluir" data-id="${esc(e.id)}">Excluir</button></div></div>`).join('');
+  const tamanho = S.painelMais || 20;
+  const mostrados = filtrados.slice(0, tamanho);
+  const linhas = mostrados.map(e => {
+    const aberto = S.painelAberto === e.id;
+    const link = e.slug
+      ? `<button class="link-btn" data-act="painel-copiar" data-id="${esc(e.id)}" aria-label="Copiar link de ${esc(e.nome)}">${esc(linkDe(e.slug))}</button>`
+      : `<button class="btn sm" data-act="painel-gerar-link" data-id="${esc(e.id)}">Gerar link</button>`;
+    const menu = aberto
+      ? `<div class="menu-estab"><small>${esc(e.prefixo)} · ${e.temAdmin ? 'com administrador' : 'sem administrador ainda'}</small><div class="acoes"><button class="btn pri" data-act="painel-abrir-estab" data-id="${esc(e.id)}">Entrar</button><button class="btn danger" data-act="painel-excluir" data-id="${esc(e.id)}">Excluir</button></div></div>`
+      : '';
+    return `<div class="item-estab"><button class="nome-estab" data-act="painel-toggle" data-id="${esc(e.id)}" aria-expanded="${aberto ? 'true' : 'false'}"><span class="seta">${aberto ? '▾' : '▸'}</span>${esc(e.nome)}</button>${link}${menu}</div>`;
+  }).join('');
+  const resto = filtrados.length - mostrados.length;
+  const rodape = resto > 0
+    ? `<p class="dica">Mostrando ${mostrados.length} de ${filtrados.length}.</p><div class="acoes"><button class="btn" data-act="painel-mais">Mostrar mais ${Math.min(20, resto)}</button></div>`
+    : (filtrados.length > 20 ? `<p class="dica">Mostrando todos os ${filtrados.length}.</p>` : '');
+  return linhas + rodape;
 }
 function vExcluirPainel(e) {
   return `<section class="card"><h2>Excluir ${esc(e.nome)}?</h2><p>O estabelecimento, a equipe e todos os brindes gerados nele são apagados. Os códigos deixam de funcionar. Isso não pode ser desfeito.</p>${vErro()}<div class="acoes"><button class="btn" data-act="painel-excluir-nao">Manter</button><button class="btn danger" data-act="painel-excluir-sim" data-id="${esc(e.id)}">Excluir de vez</button></div></section>`;
@@ -1001,7 +1017,7 @@ const LIVE = {
   lerBusca() { const el = $('#lerBusca'); if (el) el.innerHTML = vBuscaLista(); },
   hist() { const el = $('#histLista'); if (el) el.innerHTML = vHistLista(); },
   cfgPrev,
-  painel() { const el = $('#painelLista'); if (el) el.innerHTML = vPainelLista(); }
+  painel() { S.painelMais = 20; const el = $('#painelLista'); if (el) el.innerHTML = vPainelLista(); }
 };
 document.addEventListener('input', ev => {
   const t = ev.target, p = t.dataset && t.dataset.bind; if (!p) return;
@@ -1103,6 +1119,8 @@ const A = {
     } catch (err) { S.erro = msgErro(err, 'Não foi possível criar o link.'); }
     render();
   },
+  'painel-toggle'(d) { S.painelAberto = S.painelAberto === d.id ? null : d.id; render(); },
+  'painel-mais'() { S.painelMais = (S.painelMais || 20) + 20; render(); },
   'painel-excluir'(d) { S.dono.excluir = d.id; S.erro = ''; render(); },
   'painel-excluir-nao'() { S.dono.excluir = null; S.erro = ''; render(); },
   async 'painel-excluir-sim'(d) {

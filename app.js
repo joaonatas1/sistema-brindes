@@ -697,7 +697,7 @@ function vEntrada() {
 }
 function vPainelEntrar() {
   return `<section class="card"><h2>Painel geral</h2><p class="dica">Área do dono. Aqui se cadastram e excluem estabelecimentos.</p>
-    ${campo('login.senhaPainel', 'Senha do dono', 'type="password" autocomplete="off"')}
+    <input class="in" id="b-login-senhaPainel" data-bind="login.senhaPainel" type="password" autocomplete="off" placeholder="Senha" value="${esc(S.login.senhaPainel || '')}">
     ${vErro()}<div class="acoes"><button class="btn pri" data-act="painel-entrar" ${S.login.ocupado ? 'disabled' : ''}>Entrar</button></div></section>`;
 }
 function vPainelGeral() {

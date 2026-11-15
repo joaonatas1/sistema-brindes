@@ -669,7 +669,7 @@ function vEntradaLink() {
   if (!S.estabsOk) corpo = '<section class="card"><p class="carregando">Buscando…</p></section>';
   else if (!e) corpo = '<section class="card"><h2>Link inválido</h2><p>Não encontramos esse estabelecimento. Peça o endereço correto ao dono.</p></section>';
   else corpo = '<p class="estab-unico">' + esc(e.nome) + '</p>' + (e.temAdmin ? vPin() : vPrimeiroAdmin(e));
-  return '<div class="wrap"><header class="abertura"><h1>Sistema de Brindes</h1><p>Gere, envie e valide brindes com QR Code.</p></header>' + vNota() + corpo + '</div>';
+  return '<div class="wrap">' + vNota() + corpo + '</div>';
 }
 function vEntrada() {
   if (LINK_LOCAL) return vEntradaLink();
@@ -693,7 +693,7 @@ function vEntrada() {
       ? '<button class="link" data-act="pin-voltar-painel">Voltar ao Painel geral</button>'
       : '<button class="link" data-act="painel-abrir">Painel geral (dono)</button>';
   }
-  return '<div class="wrap"><header class="abertura"><h1>Sistema de Brindes</h1><p>Gere, envie e valide brindes com QR Code.</p></header>' + vNota() + corpo + '</div>';
+  return '<div class="wrap">' + vNota() + corpo + '</div>';
 }
 function vPainelEntrar() {
   return `<section class="card"><h2>Painel geral</h2><p class="dica">Área do dono. Aqui se cadastram e excluem estabelecimentos.</p>
@@ -709,7 +709,7 @@ function vPainelGeral() {
   }
   const lista = S.estabs.length
     ? S.estabs.map(e => `<div class="linha-estab"><div><strong>${esc(e.nome)}</strong><br><small>${esc(e.prefixo)} · ${e.temAdmin ? 'com administrador' : 'sem administrador ainda'}</small>${e.slug ? `<br><small class="link-txt">${esc(linkDe(e.slug))}</small>` : '<br><small>Sem link ainda</small>'}</div><div class="acoes">${e.slug ? `<button class="btn" data-act="painel-copiar" data-id="${esc(e.id)}">Copiar link</button>` : `<button class="btn" data-act="painel-gerar-link" data-id="${esc(e.id)}">Gerar link</button>`}<button class="btn pri" data-act="painel-abrir-estab" data-id="${esc(e.id)}">Entrar</button><button class="btn danger" data-act="painel-excluir" data-id="${esc(e.id)}">Excluir</button></div></div>`).join('')    : '<p>Nenhum estabelecimento cadastrado ainda.</p>';
-  return `<section class="card"><h2>Painel geral</h2><p class="dica">Escolha "Entrar" para usar um estabelecimento com o PIN de administrador ou da equipe.</p>${lista}${vErro()}<div class="acoes"><button class="btn pri" data-act="painel-novo">Cadastrar estabelecimento</button></div><button class="link" data-act="painel-sair">Sair do Painel geral</button></section>`;
+  return `<section class="card"><h2>Painel geral</h2>${lista}${vErro()}<div class="acoes"><button class="btn pri" data-act="painel-novo">Cadastrar estabelecimento</button></div><button class="link" data-act="painel-sair">Sair do Painel geral</button></section>`;
 }
 function vExcluirPainel(e) {
   return `<section class="card"><h2>Excluir ${esc(e.nome)}?</h2><p>O estabelecimento, a equipe e todos os brindes gerados nele são apagados. Os códigos deixam de funcionar. Isso não pode ser desfeito.</p>${vErro()}<div class="acoes"><button class="btn" data-act="painel-excluir-nao">Manter</button><button class="btn danger" data-act="painel-excluir-sim" data-id="${esc(e.id)}">Excluir de vez</button></div></section>`;

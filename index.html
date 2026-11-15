@@ -7,8 +7,8 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Sistema de Brindes">
 <meta property="og:description" content="Gere, envie e valide brindes com QR Code.">
-<meta property="og:url" content="https://sistema-brindes.vercel.app/">
-<meta property="og:image" content="https://sistema-brindes.vercel.app/preview.png">
+<meta property="og:url" content="https://giftamy.netlify.app/">
+<meta property="og:image" content="https://giftamy.netlify.app/preview.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -159,8 +159,9 @@ button.story-btn{border:0;padding:0;background:none;border-radius:10px;align-sel
 .cod-linha{display:flex;gap:8px;align-items:stretch}
 .cod-linha .prefixo{display:grid;place-items:center;padding:0 10px;border-radius:10px;background:var(--sunken);font-family:var(--f-code);font-weight:700;font-size:17px;flex:none}
 .cod-linha .in{font-family:var(--f-code);font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;min-width:0;flex:1}
-.simbolos{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.simbolos button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:var(--f-code);font-weight:700;font-size:18px}
+.simbolos{display:flex;gap:5px;flex-wrap:nowrap;align-items:center}
+.simbolos .dica{white-space:nowrap;margin-right:2px}
+.simbolos button{width:40px;height:44px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:var(--f-code);font-weight:700;font-size:18px}
 
 .veredito{border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;border:1px solid transparent}
 .veredito .selo-v{font-family:var(--f-display);font-weight:800;font-size:22px;line-height:1.15}
@@ -249,6 +250,12 @@ button.story-btn{border:0;padding:0;background:none;border-radius:10px;align-sel
 .linha-estab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid #e5e5e5}
 .linha-estab .acoes{display:flex;gap:6px;flex-wrap:wrap}
 .link-txt{word-break:break-all;color:#666}
+.vale::after{display:none}
+.recolhivel>summary{list-style:none;cursor:pointer}
+.recolhivel>summary::-webkit-details-marker{display:none}
+.recolhivel>summary h2::after{content:" ▾";color:var(--muted)}
+.recolhivel[open]>summary h2::after{content:" ▴"}
+#cfgPrev{width:150px;max-width:100%}
 </style>
 </head>
 <body>

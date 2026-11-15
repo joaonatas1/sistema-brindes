@@ -934,13 +934,13 @@ function vAjustes() {
     ${c.brindes.map((b, i) => `<div class="linha-edit"><input class="in" id="b-cfg-brindes-${i}-nome" data-bind="cfg.brindes.${i}.nome" data-live="cfgPrev" value="${esc(b.nome)}" aria-label="Nome do brinde ${i + 1}" placeholder="Nome do brinde" autocomplete="off"><input class="in usos" id="b-cfg-brindes-${i}-usos" data-bind="cfg.brindes.${i}.usos" type="number" inputmode="numeric" min="1" max="10" value="${esc(b.usos || 1)}" aria-label="Usos por código do brinde ${i + 1}"><button class="x" data-act="cfg-brinde-x" data-i="${i}" aria-label="Remover brinde ${esc(b.nome)}">×</button></div>`).join('')}
     <button class="btn block" data-act="cfg-brinde-mais">Adicionar brinde</button></section>
 
-  <section class="card"><h2>Motivos</h2>
+  <details class="card recolhivel"><summary><h2>Motivos</h2></summary>
     ${c.motivos.map((mt, i) => `<div class="linha-edit"><input class="in" id="b-cfg-motivos-${i}" data-bind="cfg.motivos.${i}" value="${esc(mt)}" aria-label="Motivo ${i + 1}" placeholder="Motivo" autocomplete="off"><button class="x" data-act="cfg-motivo-x" data-i="${i}" aria-label="Remover motivo ${esc(mt)}">×</button></div>`).join('')}
-    <button class="btn block" data-act="cfg-motivo-mais">Adicionar motivo</button></section>
+    <button class="btn block" data-act="cfg-motivo-mais">Adicionar motivo</button></details>
 
-  <section class="card"><h2>Validade e regras</h2>
+  <details class="card recolhivel"><summary><h2>Validade e regras</h2></summary>
     ${campo('cfg.validadeDias', 'Validade padrão (dias)', 'type="number" inputmode="numeric" min="1" max="365" data-live="cfgPrev"')}
-    <div class="grupo"><label class="lb" for="b-cfg-regras">Regras que aparecem na imagem</label><textarea class="in" id="b-cfg-regras" data-bind="cfg.regras" data-live="cfgPrev" maxlength="220">${esc(c.regras)}</textarea></div></section>
+    <div class="grupo"><label class="lb" for="b-cfg-regras">Regras que aparecem na imagem</label><textarea class="in" id="b-cfg-regras" data-bind="cfg.regras" data-live="cfgPrev" maxlength="220">${esc(c.regras)}</textarea></div></details>
 
   <section class="card"><h2>Equipe</h2><p>Administrador gera brindes e vê tudo. Equipe só lê o código e entrega. Estas mudanças valem na hora.</p>
     <div>${S.membros.map(m => `<div class="membro"><span class="nome">${esc(m.nome)}${m.id === eu ? ' (você)' : ''}</span><span class="nivel">${m.nivel === 'admin' ? 'Administrador' : 'Equipe'}</span>

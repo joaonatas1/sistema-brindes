@@ -412,7 +412,7 @@ function aplicarMarca() {
 let fontesP;
 function fontes() {
   if (!fontesP) fontesP = Promise.race([
-    Promise.all(['800 100px "Bricolage Grotesque"', '600 40px "Instrument Sans"', '400 28px "Instrument Sans"', '700 80px "JetBrains Mono"'].map(f => document.fonts.load(f).catch(() => {}))),
+    Promise.all(['800 100px "Bricolage Grotesque"', '600 40px "Instrument Sans"', '400 28px "Instrument Sans"', '700 80px "JetBrains Mono"', '600 100px "Cormorant Garamond"'].map(f => document.fonts.load(f).catch(() => {}))),
     new Promise(r => setTimeout(r, 3000))
   ]);
   return fontesP;
@@ -443,63 +443,76 @@ function desenhaQR(x, texto, px, py, lado) {
     x.fillRect(x0, y0, Math.round(px + (c + 1) * lado / n) - x0, Math.round(py + (r + 1) * lado / n) - y0);
   }
 }
+const FS = '"Cormorant Garamond",Georgia,"Times New Roman",serif';
 function drawStory(g, e, logo, escala) {
   const W = 1080, H = 1920, k = escala || 1;
   const cv = document.createElement('canvas'); cv.width = Math.round(W * k); cv.height = Math.round(H * k);
   const x = cv.getContext('2d'); x.scale(k, k);
   const marca = corOk(e.cor), on = sobre(marca), cx = W / 2;
+  // fundo: cor da marca, com luz suave no centro e sombra nas bordas
   x.fillStyle = marca; x.fillRect(0, 0, W, H);
-  const gr = x.createLinearGradient(0, 0, 0, H);
-  gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(.45, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(0,0,0,.30)');
-  x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  const luz = x.createRadialGradient(cx, 820, 60, cx, 820, 1000);
+  luz.addColorStop(0, 'rgba(255,255,255,.14)'); luz.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = luz; x.fillRect(0, 0, W, H);
+  const sombra = x.createLinearGradient(0, 0, 0, H);
+  sombra.addColorStop(0, 'rgba(0,0,0,.22)'); sombra.addColorStop(.5, 'rgba(0,0,0,0)'); sombra.addColorStop(1, 'rgba(0,0,0,.38)');
+  x.fillStyle = sombra; x.fillRect(0, 0, W, H);
   x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillStyle = on;
 
-  // topo: logo ou nome do estabelecimento
+  // topo: logo da casa ou nome, em letra elegante
   if (logo) {
-    const s = Math.min(520 / logo.width, 180 / logo.height); const lw = logo.width * s, lh = logo.height * s;
-    x.drawImage(logo, cx - lw / 2, 130 + (180 - lh) / 2, lw, lh);
+    const s = Math.min(480 / logo.width, 200 / logo.height); const lw = logo.width * s, lh = logo.height * s;
+    x.drawImage(logo, cx - lw / 2, 170 + (200 - lh) / 2, lw, lh);
   } else {
-    let fs = 60; x.font = `600 ${fs}px ${FD}`;
-    while (fs > 36 && x.measureText(e.nome || '').width > 900) { fs -= 4; x.font = `600 ${fs}px ${FD}`; }
-    x.fillText(cabe(x, e.nome || '', 900), cx, 240);
+    const nomeCasa = (e.nome || '').toUpperCase();
+    let fs = 130; x.font = `600 ${fs}px ${FS}`;
+    while (fs > 64 && x.measureText(nomeCasa).width > 920) { fs -= 6; x.font = `600 ${fs}px ${FS}`; }
+    x.fillText(cabe(x, nomeCasa, 940), cx, 300);
   }
-  // chamada
-  x.globalAlpha = .9; x.font = `600 42px ${FB}`; espacado(x, 'VOCÊ GANHOU', cx, 400, 12); x.globalAlpha = 1;
-  // nome do brinde, ajustado à área 440–770
-  let linhas = [], tam = 64;
-  for (const t of [150, 132, 116, 100, 88, 76, 64]) {
-    x.font = `800 ${t}px ${FD}`; const ls = quebra(x, g.brinde || '', 940);
-    if (ls.length <= 3 && ls.every(l => x.measureText(l).width <= 960) && ls.length * t * 1.04 <= 330) { linhas = ls; tam = t; break; }
-  }
-  if (!linhas.length) { x.font = `800 64px ${FD}`; linhas = quebra(x, g.brinde || '', 940).slice(0, 4); tam = 64; }
-  const alt = linhas.length * tam * 1.04; let by = 440 + (330 - alt) / 2 + tam * .82;
-  linhas.forEach(l => { x.fillText(cabe(x, l, 960), cx, by); by += tam * 1.04; });
+  x.globalAlpha = .6; x.fillRect(cx - 70, 370, 140, 3); x.globalAlpha = 1;
 
-  // cartão picotado com o QR Code e o código
-  const X = 160, Y = 800, Wc = 760, Hc = 760, R = 44, ny = 1404, nr = 26;
-  x.save(); x.shadowColor = 'rgba(0,0,0,.28)'; x.shadowBlur = 44; x.shadowOffsetY = 18; x.fillStyle = '#FFFFFF';
-  x.beginPath(); x.moveTo(X + R, Y); x.lineTo(X + Wc - R, Y); x.arcTo(X + Wc, Y, X + Wc, Y + R, R);
-  x.lineTo(X + Wc, ny - nr); x.arc(X + Wc, ny, nr, -Math.PI / 2, Math.PI / 2, true);
-  x.lineTo(X + Wc, Y + Hc - R); x.arcTo(X + Wc, Y + Hc, X + Wc - R, Y + Hc, R);
-  x.lineTo(X + R, Y + Hc); x.arcTo(X, Y + Hc, X, Y + Hc - R, R);
-  x.lineTo(X, ny + nr); x.arc(X, ny, nr, Math.PI / 2, -Math.PI / 2, true);
-  x.lineTo(X, Y + R); x.arcTo(X, Y, X + R, Y, R); x.closePath(); x.fill(); x.restore();
-  desenhaQR(x, g.codigo, cx - 260, 846, 520);
-  x.save(); x.strokeStyle = '#CFC6CB'; x.lineWidth = 4; x.setLineDash([16, 14]); x.beginPath(); x.moveTo(X + nr + 16, ny); x.lineTo(X + Wc - nr - 16, ny); x.stroke(); x.restore();
-  x.fillStyle = '#17110F'; let fc = 86; x.font = `700 ${fc}px ${FC}`;
-  while (fc > 44 && x.measureText(g.codigo).width > 660) { fc -= 4; x.font = `700 ${fc}px ${FC}`; }
-  x.fillText(g.codigo, cx, 1508);
-
-  // rodapé: ganhador, validade e regras
-  x.fillStyle = on; let y = 1640;
-  if (g.nome) { x.font = `600 44px ${FB}`; x.fillText(cabe(x, 'Para: ' + g.nome, 920), cx, y); y += 56; }
-  x.globalAlpha = .92; x.font = `500 36px ${FB}`;
-  x.fillText('Válido até ' + fData(g.validoAte) + ((g.usos || 1) > 1 ? ` · vale ${g.usos} usos` : ''), cx, y); y += 58;
-  if (e.regras) {
-    x.globalAlpha = .82; x.font = `400 30px ${FB}`;
-    let rs = quebra(x, e.regras, 900); if (rs.length > 3) { rs = rs.slice(0, 3); rs[2] = cabe(x, rs[2], 850); if (!rs[2].endsWith('…')) rs[2] += '…'; }
-    rs.forEach(l => { x.fillText(l, cx, y); y += 40; });
+  // saudação e chamada
+  const pessoa = (g.nome || '').trim().split(/\s+/).slice(0, 3).join(' ').toUpperCase();
+  let yChamada = 520;
+  if (pessoa) {
+    x.globalAlpha = .9; x.font = `500 40px ${FB}`; x.fillText('Ei,', cx, 455); x.globalAlpha = 1;
+    x.font = `600 84px ${FS}`; x.fillText(cabe(x, pessoa, 940), cx, 545);
+    yChamada = 625;
   }
+  x.globalAlpha = .92; x.font = `600 42px ${FB}`; espacado(x, 'VOCÊ GANHOU!', cx, yChamada, 12); x.globalAlpha = 1;
+
+  // nome do brinde, em até 3 linhas, na área 690–1000
+  let linhas = [], tam = 76;
+  const TITULO = (g.brinde || '').toUpperCase();
+  for (const t of [160, 146, 132, 118, 104, 92, 80, 76]) {
+    x.font = `600 ${t}px ${FS}`; const ls = quebra(x, TITULO, 940);
+    if (ls.length <= 3 && ls.every(l => x.measureText(l).width <= 960) && ls.length * t * .98 <= 310) { linhas = ls; tam = t; break; }
+  }
+  if (!linhas.length) { x.font = `600 ${tam}px ${FS}`; linhas = quebra(x, TITULO, 940).slice(0, 3); }
+  let by = 690 + (310 - linhas.length * tam * .98) / 2 + tam * .8;
+  linhas.forEach(l => { x.fillText(cabe(x, l, 960), cx, by); by += tam * .98; });
+
+  // QR Code pequeno, em cartão branco, com o código embaixo
+  const QB = 270, qx = cx - QB / 2, qy = 1080, pad = 26, lado = QB - pad * 2;
+  x.save(); x.shadowColor = 'rgba(0,0,0,.25)'; x.shadowBlur = 30; x.shadowOffsetY = 12; x.fillStyle = '#FFFFFF';
+  x.beginPath(); if (x.roundRect) x.roundRect(qx, qy, QB, QB, 22); else x.rect(qx, qy, QB, QB); x.fill(); x.restore();
+  desenhaQR(x, g.codigo, qx + pad, qy + pad, lado);
+  x.fillStyle = on; x.font = `700 52px ${FC}`;
+  espacado(x, g.codigo, cx, qy + QB + 70, 6);
+
+  // rodapé, de baixo para cima: regras, depois validade
+  const rs = (() => {
+    if (!e.regras) return [];
+    x.font = `400 30px ${FB}`;
+    let r = quebra(x, e.regras, 880); if (r.length > 3) { r = r.slice(0, 3); r[2] = cabe(x, r[2], 850); if (!r[2].endsWith('…')) r[2] += '…'; }
+    return r;
+  })();
+  const yUltima = 1800; let yReg = yUltima - (rs.length ? (rs.length - 1) * 42 : 0);
+  x.globalAlpha = .8; x.font = `400 30px ${FB}`;
+  rs.forEach(l => { x.fillText(l, cx, yReg); yReg += 42; });
+  x.globalAlpha = .92; x.font = `500 38px ${FB}`;
+  const yVal = (rs.length ? yUltima - (rs.length - 1) * 42 : yUltima) - 70;
+  x.fillText('Válido até ' + fData(g.validoAte) + ((g.usos || 1) > 1 ? ` · vale ${g.usos} usos` : ''), cx, yVal);
   x.globalAlpha = 1;
   return cv;
 }

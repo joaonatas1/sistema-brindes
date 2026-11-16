@@ -412,7 +412,7 @@ function aplicarMarca() {
 let fontesP;
 function fontes() {
   if (!fontesP) fontesP = Promise.race([
-    Promise.all(['800 100px "Bricolage Grotesque"', '600 40px "Instrument Sans"', '400 28px "Instrument Sans"', '700 80px "JetBrains Mono"', '600 100px "Cormorant Garamond"'].map(f => document.fonts.load(f).catch(() => {}))),
+    Promise.all(['800 100px "Bricolage Grotesque"', '600 40px "Instrument Sans"', '400 28px "Instrument Sans"', '700 80px "JetBrains Mono"'].map(f => document.fonts.load(f).catch(() => {}))),
     new Promise(r => setTimeout(r, 3000))
   ]);
   return fontesP;
@@ -443,7 +443,7 @@ function desenhaQR(x, texto, px, py, lado) {
     x.fillRect(x0, y0, Math.round(px + (c + 1) * lado / n) - x0, Math.round(py + (r + 1) * lado / n) - y0);
   }
 }
-const FS = '"Cormorant Garamond",Georgia,"Times New Roman",serif';
+const FS = FD;
 function drawStory(g, e, logo, escala) {
   const W = 1080, H = 1920, k = escala || 1;
   const cv = document.createElement('canvas'); cv.width = Math.round(W * k); cv.height = Math.round(H * k);

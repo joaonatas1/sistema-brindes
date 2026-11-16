@@ -504,7 +504,9 @@ function drawStory(g, e, logo, escala) {
   const rs = (() => {
     if (!e.regras) return [];
     x.font = `400 30px ${FB}`;
-    let r = quebra(x, e.regras, 880); if (r.length > 3) { r = r.slice(0, 3); r[2] = cabe(x, r[2], 850); if (!r[2].endsWith('…')) r[2] += '…'; }
+    let r = [];
+    String(e.regras).split(/\n/).map(p => p.trim()).filter(Boolean).forEach(p => { r = r.concat(quebra(x, p, 880)); });
+    if (r.length > 6) { r = r.slice(0, 6); r[5] = cabe(x, r[5], 850); if (!r[5].endsWith('…')) r[5] += '…'; }
     return r;
   })();
   const yUltima = 1800; let yReg = yUltima - (rs.length ? (rs.length - 1) * 42 : 0);

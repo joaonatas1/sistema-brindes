@@ -347,7 +347,8 @@ const MSG = {
 const msgErro = (e, padrao) => (e && MSG[e.code]) || padrao || 'Não foi possível concluir. Tente de novo.';
 
 /* ---------- códigos, situação e padrões ---------- */
-const ALFA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789@#$%&';
+const ALFA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const ALFA_LEITURA = ALFA + '@#$%&'; // códigos antigos com símbolos ainda podem ser digitados
 const MOTIVOS_PADRAO = ['Aniversário', 'Cortesia', 'Promoção', 'Cashback', 'Outros'];
 const REGRAS_PADRAO = 'Este prêmio é intransferível. Será validado com o nome e o telefone de quem ganhou.';
 const COR_PADRAO = '#7B1E3A';
@@ -904,7 +905,6 @@ function vLer() {
     ${aoVivo ? '' : '<p class="dica">A câmera abre para você fotografar o QR Code do cliente. O brinde é marcado como usado assim que o código é lido.</p>'}</section>
   <section class="card"><h2>Digitar o código</h2>
     <div class="cod-linha"><span class="prefixo">${esc(e.prefixo)}-</span><input class="in" id="b-ler-codigo" data-bind="ler.codigo" data-kind="cod" value="${esc(L.codigo)}" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Os 4 caracteres do código" placeholder="7K3P"><button class="btn pri" data-act="validar">Validar</button></div>
-    <div class="simbolos"><span class="dica">Símbolos:</span>${[...'@#$%&'].map(s => `<button data-act="simb" data-s="${esc(s)}" aria-label="Inserir ${esc(s)}">${esc(s)}</button>`).join('')}</div></section>
   <section class="card"><h2>Buscar por nome ou telefone</h2>
     <input class="in" id="b-ler-busca" data-bind="ler.busca" data-live="lerBusca" value="${esc(L.busca)}" placeholder="Nome de quem ganhou" autocomplete="off" aria-label="Buscar ganhador">
     <div id="lerBusca" class="lista">${vBuscaLista()}</div></section>`;
@@ -1079,7 +1079,7 @@ const LIVE = {
 document.addEventListener('input', ev => {
   const t = ev.target, p = t.dataset && t.dataset.bind; if (!p) return;
   let v = t.value;
-  if (t.dataset.kind === 'cod') { v = [...v.toUpperCase()].filter(c => ALFA.includes(c)).join('').slice(0, 4); if (v !== t.value) t.value = v; }
+  if (t.dataset.kind === 'cod') { v = [...v.toUpperCase()].filter(c => ALFA_LEITURA.includes(c)).join('').slice(0, 4); if (v !== t.value) t.value = v; }
   else if (t.dataset.kind === 'pin') { v = v.replace(/\D/g, '').slice(0, 4); if (v !== t.value) t.value = v; }
   else if (t.dataset.kind === 'prefixo') { v = v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); if (v !== t.value) t.value = v; }
   else if (t.type === 'number') v = v === '' ? '' : Number(v);

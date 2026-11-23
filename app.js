@@ -975,6 +975,7 @@ function vHist() {
     <div class="chips">${fs.map(([k, t]) => `<button class="chip" aria-pressed="${S.hist.filtro === k}" data-act="h-filtro" data-f="${k}">${t}<span class="n">${cont[k]}</span></button>`).join('')}</div>
     <input class="in" id="b-hist-busca" data-bind="hist.busca" data-live="hist" value="${esc(S.hist.busca)}" placeholder="Buscar por nome, código ou brinde" autocomplete="off" aria-label="Buscar no histórico">
     <button class="btn block" data-act="exportar">Exportar planilha (.xlsx)</button>
+    <button class="btn block" data-act="baixar-todas">Baixar todas as imagens (.zip)</button>
     ${ehAdmin() ? `<button class="btn block ${S.hist.selModo ? 'pri' : ''}" data-act="h-sel-modo">${S.hist.selModo ? 'Sair da seleção' : 'Selecionar vários para cancelar'}</button>` : ''}</section>
   <div id="histLista" class="lista">${vHistLista()}</div>`;
 }
@@ -1140,6 +1141,24 @@ function baixarArquivo(blob, nome) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+/* ZIP sem compressão (PNG já é comprimido), com CRC-32 e nomes em UTF-8 */
+const CRC_TAB = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(bytes) { let c = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) c = CRC_TAB[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function montarZip(arquivos) {
+  const enc = new TextEncoder(), u16 = n => [n & 255, (n >>> 8) & 255], u32 = n => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+  const agora = new Date(), hora = (agora.getHours() << 11) | (agora.getMinutes() << 5) | (agora.getSeconds() >> 1), dia = ((agora.getFullYear() - 1980) << 9) | ((agora.getMonth() + 1) << 5) | agora.getDate();
+  const partes = [], diretorio = []; let pos = 0;
+  for (const a of arquivos) {
+    const nome = enc.encode(a.nome), crc = crc32(a.dados), tam = a.dados.length;
+    const cab = Uint8Array.from([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(hora), ...u16(dia), ...u32(crc), ...u32(tam), ...u32(tam), ...u16(nome.length), ...u16(0)]);
+    partes.push(cab, nome, a.dados);
+    diretorio.push(Uint8Array.from([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(hora), ...u16(dia), ...u32(crc), ...u32(tam), ...u32(tam), ...u16(nome.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(pos)]), nome);
+    pos += cab.length + nome.length + tam;
+  }
+  const tamDiretorio = diretorio.reduce((s, p) => s + p.length, 0);
+  const fim = Uint8Array.from([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(arquivos.length), ...u16(arquivos.length), ...u32(tamDiretorio), ...u32(pos), ...u16(0)]);
+  return new Blob([...partes, ...diretorio, fim], {type: 'application/zip'});
 }
 const COPIA_KEY = 'brindes.ultimaCopia';
 function ultimaCopia() { try { return Number(localStorage.getItem(COPIA_KEY)) || 0; } catch (e) { return 0; } }
@@ -1381,6 +1400,25 @@ const A = {
     toast(falhou ? `${ok} cancelado${ok === 1 ? '' : 's'}. ${falhou} não puderam ser cancelados.` : `${ok} brinde${ok === 1 ? '' : 's'} cancelado${ok === 1 ? '' : 's'}.`);
   },
   'p-periodo'(d) { S.painel.periodo = Number(d.p); render(); },
+  async 'baixar-todas'() {
+    const gs = S.gifts.slice(), e = estab();
+    if (!gs.length) return toast('Não há brindes para baixar.');
+    const usados = new Map(), arquivos = [];
+    try {
+      await fontes(); const logo = await logoDe(e);
+      for (let i = 0; i < gs.length; i++) {
+        const g = gs[i], d = new Date(g.criadoEm);
+        const dd = String(d.getDate()).padStart(2, '0'), mm = String(d.getMonth() + 1).padStart(2, '0'), aa = String(d.getFullYear()).slice(-2);
+        let base = `${slug(g.nome || 'sem-nome')}-${dd}-${mm}-${aa}`;
+        const n = (usados.get(base) || 0) + 1; usados.set(base, n); if (n > 1) base += `-${n}`;
+        const blob = await blobDe(drawStory(g, e, logo, 1), 'image/png');
+        arquivos.push({nome: base + '.png', dados: new Uint8Array(await blob.arrayBuffer())});
+        if (i % 5 === 4 || i === gs.length - 1) toast(`Preparando imagens: ${i + 1} de ${gs.length}...`);
+      }
+      baixarArquivo(montarZip(arquivos), `brindes-${slug(e.nome)}-${new Date().toISOString().slice(0, 10)}.zip`);
+      toast(`${arquivos.length} imagens baixadas.`);
+    } catch (err) { toast('Não foi possível preparar as imagens agora.'); }
+  },
   async exportar() {
     if (typeof XLSX === 'undefined') return toast('A planilha não pôde ser preparada. Recarregue a página.');
     const lista = histFiltrada(), e = estab(); if (!lista.length) return toast('Não há brindes neste filtro para exportar.');

@@ -751,7 +751,7 @@ function vEntrada() {
       ? '<button class="link" data-act="pin-voltar-painel">Voltar ao Painel geral</button>'
       : '<button class="link" data-act="painel-abrir">Painel geral (dono)</button>';
   }
-  return '<div class="wrap">' + vNota() + corpo + '</div>';
+  return '<div class="wrap' + (S.dono ? '' : ' centro') + '">' + vNota() + corpo + '</div>';
 }
 function vPainelEntrar() {
   return `<section class="card"><h2>Painel geral</h2><p class="dica">Área do dono. Aqui se cadastram e excluem estabelecimentos.</p>

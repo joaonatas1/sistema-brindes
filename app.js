@@ -831,8 +831,8 @@ function vNovoEstab() {
 function vApp() {
   const e = estab(), adm = ehAdmin();
   const tabs = [['gerar', 'Gerar'], ['ler', 'Ler'], ['hist', 'Histórico'], ['painel', 'Painel'], ['ajustes', 'Ajustes']];
-  const corpo = !adm ? vLer() : S.tab === 'gerar' ? vGerar() : S.tab === 'hist' ? vHist() : S.tab === 'painel' ? vPainel() : S.tab === 'ajustes' ? vAjustes() : vLer();
-  return `<div class="wrap ${adm ? 'comtabs' : ''}">
+  const corpo = !adm ? vLer(true) : S.tab === 'gerar' ? vGerar() : S.tab === 'hist' ? vHist() : S.tab === 'painel' ? vPainel() : S.tab === 'ajustes' ? vAjustes() : vLer(false);
+  return `<div class="wrap ${adm ? 'comtabs' : 'equipe'}">
     <header class="topo">
       <span class="quem"><strong>${esc(e.nome)}</strong><span>${esc(S.sess.nome)} · ${adm ? 'Administrador' : 'Equipe'}</span></span>
       <button class="btn sm" data-act="sair">Sair</button></header>
@@ -894,20 +894,24 @@ function waLink(g, e) {
 }
 
 /* ler */
-function vLer() {
+function vLer(fixa) {
   const e = estab(), L = S.ler;
-  const leitor = aoVivo
+  // ao chegar um resultado novo, a tela volta ao topo para a equipe ver logo
+  if (L.res && L.res !== window.__resVisto) { window.__resVisto = L.res; if (fixa) setTimeout(() => window.scrollTo({top: 0, behavior: 'smooth'}), 0); }
+  const botao = aoVivo
     ? `<button class="btn pri big block" data-act="cam">${IC.ler} Ler QR Code</button>`
     : `<label class="btn pri big block" for="qrFile" tabindex="0" role="button" data-act="rotulo-arquivo">${IC.ler} ${L.ocupado ? 'Lendo…' : 'Ler QR Code'}</label>`;
+  const arquivo = `<input class="vh" type="file" id="qrFile" accept="image/*" capture="environment" data-file="qr" tabindex="-1" aria-hidden="true">`;
+  const dica = aoVivo || fixa ? '' : '<p class="dica">Fotografe o QR Code do cliente. O brinde é marcado como usado assim que o código é lido.</p>';
   return `${L.res ? vVeredito(L.res) : ''}
-  <section class="card">${leitor}
-    <input class="vh" type="file" id="qrFile" accept="image/*" capture="environment" data-file="qr" tabindex="-1" aria-hidden="true">
-    ${aoVivo ? '' : '<p class="dica">A câmera abre para você fotografar o QR Code do cliente. O brinde é marcado como usado assim que o código é lido.</p>'}</section>
+  ${fixa ? '' : `<section class="card">${botao}${arquivo}${dica}</section>`}
   <section class="card"><h2>Digitar o código</h2>
     <div class="cod-linha"><span class="prefixo">${esc(e.prefixo)}-</span><input class="in" id="b-ler-codigo" data-bind="ler.codigo" data-kind="cod" value="${esc(L.codigo)}" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Os 4 caracteres do código" placeholder="7K3P"><button class="btn pri" data-act="validar">Validar</button></div>
-  <section class="card"><h2>Buscar por nome ou telefone</h2>
+  </section>
+  <details class="card recolhivel" ${L.busca ? 'open' : ''}><summary><h2>Buscar por nome ou telefone</h2></summary>
     <input class="in" id="b-ler-busca" data-bind="ler.busca" data-live="lerBusca" value="${esc(L.busca)}" placeholder="Nome de quem ganhou" autocomplete="off" aria-label="Buscar ganhador">
-    <div id="lerBusca" class="lista">${vBuscaLista()}</div></section>`;
+    <div id="lerBusca" class="lista">${vBuscaLista()}</div></details>
+  ${fixa ? `<div class="barra-ler">${botao}${arquivo}</div>` : ''}`;
 }
 function vBuscaLista() {
   const q = norm(S.ler.busca).trim(); if (q.length < 2) return '';

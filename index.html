@@ -13,31 +13,35 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: app de uma coluna para celular (até 560px), abas fixas embaixo.
-   Cada brinde aparece como um vale picotado, com o código em fonte de bilhete. */
+/* Identidade v2 — "adega à noite": a equipe usa no balcão, com pouca luz e o celular numa mão.
+   Rolha (cortiça) é o acento estrutural; a cor de cada casa fica nos botões principais.
+   O código de cada brinde aparece sempre como bilhete: prefixo cor de rolha + picote. */
 :root{
-  --bg:#F5F2F4; --surface:#FFFFFF; --sunken:#ECE7EA; --ink:#1F181D; --muted:#6B6067; --line:#E2D9DE;
+  --bg:#F4EEF1; --surface:#FFFFFF; --sunken:#EBE3E7; --ink:#24161C; --muted:#6E5F66; --line:#E3D8DD;
+  --cork:#8C6A45;
   --brand:#7B1E3A; --on-brand:#FFFFFF;
   --ok:#17754A; --ok-bg:#E2F3E9; --warn:#8A5A00; --warn-bg:#FAEED3;
   --bad:#B3261E; --bad-bg:#FBE5E3; --info:#4A4F8C; --info-bg:#E9EAF7;
-  --veil:rgba(22,14,19,.56);
-  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
-  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --veil:rgba(30,20,23,.56);
+  --f-display:"Jost","Futura","Century Gothic",system-ui,sans-serif;
+  --f-body:"Jost","Futura","Century Gothic",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-code:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   --tab-h:62px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#161215; --surface:#211B1F; --sunken:#2B2328; --ink:#F2EBEF; --muted:#A99EA5; --line:#3A3036;
+    --bg:#1E1417; --surface:#2B1C21; --sunken:#36252B; --ink:#F4EAE6; --muted:#B3A3A8; --line:#47343B;
+    --cork:#C9A57B;
     --ok:#62CC96; --ok-bg:#163326; --warn:#EAB95C; --warn-bg:#3A2B0E;
     --bad:#F2918A; --bad-bg:#431C19; --info:#AEB3F0; --info-bg:#25284A;
     --veil:rgba(0,0,0,.66); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#161215; --surface:#211B1F; --sunken:#2B2328; --ink:#F2EBEF; --muted:#A99EA5; --line:#3A3036;
+  --bg:#1E1417; --surface:#2B1C21; --sunken:#36252B; --ink:#F4EAE6; --muted:#B3A3A8; --line:#47343B;
+  --cork:#C9A57B;
   --ok:#62CC96; --ok-bg:#163326; --warn:#EAB95C; --warn-bg:#3A2B0E;
   --bad:#F2918A; --bad-bg:#431C19; --info:#AEB3F0; --info-bg:#25284A;
   --veil:rgba(0,0,0,.66); color-scheme:dark;
@@ -275,6 +279,44 @@ button.story-btn{border:0;padding:0;background:none;border-radius:10px;align-sel
 .barra-ler{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:1px solid var(--line);padding:12px max(16px,env(safe-area-inset-left,0px)) calc(12px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 24px rgba(0,0,0,.12)}
 .barra-ler .btn{margin:0}
 .wrap.equipe{padding-block-end:130px}
+/* identidade v2: componentes */
+body{font-size:16px}
+h2{font-size:20px;font-weight:600}
+h3{font-size:16px;font-weight:600}
+:focus-visible{outline:2px solid var(--cork);outline-offset:2px}
+.card{border:0;border-radius:20px;padding:18px}
+.lb{letter-spacing:0;font-weight:500}
+.in{border-radius:12px;background:var(--sunken);border-color:transparent}
+.in:focus{border-color:var(--cork);outline:none}
+.btn{font-family:var(--f-display);font-weight:600;letter-spacing:.01em}
+.btn:not(.pri):not(.danger){background:transparent}
+.btn.big{min-height:62px;font-size:19px}
+.chip[aria-pressed="true"]{background:var(--cork);color:var(--bg);border-color:var(--cork)}
+.pill{text-transform:none;letter-spacing:0;font-size:12px}
+.topo{padding-bottom:12px;border-bottom:1px solid var(--line)}
+.topo .quem strong{font-size:19px;font-weight:600}
+
+/* o bilhete */
+.cod-linha{gap:0}
+.cod-linha .prefixo{background:var(--cork);color:var(--bg);border-radius:12px 0 0 12px;padding:0 12px}
+.cod-linha .in{border-radius:0 12px 12px 0;border-left:2px dashed var(--bg)}
+.cod-linha .btn{margin-left:8px}
+.vale{border-color:transparent;border-radius:16px}
+.vale .stub{background:color-mix(in srgb,var(--cork) 16%,var(--surface));border-right:2px dashed var(--cork);border-radius:16px 0 0 16px}
+.vale .stub small{color:var(--cork)}
+.vale::before{border:0}
+
+/* PIN */
+.tecla{background:var(--surface);border-color:transparent;font-weight:500;font-size:26px}
+.pontos i.on{background:var(--cork);border-color:var(--cork)}
+
+/* barras fixas */
+.barra-ler{background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:none}
+.dock{background:color-mix(in srgb,var(--surface) 94%,transparent)}
+
+/* listas do Painel geral: sem cores fixas, valem nos dois temas */
+.linha-estab,.item-estab{border-bottom-color:var(--line)}
+.link-txt{color:var(--muted)}
 </style>
 </head>
 <body>

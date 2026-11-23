@@ -476,9 +476,8 @@ function drawStory(g, e, logo, escala) {
   const pessoa = (g.nome || '').trim().split(/\s+/).slice(0, 3).join(' ').toUpperCase();
   let yChamada = 520;
   if (pessoa) {
-    x.globalAlpha = .9; x.font = `500 40px ${FB}`; x.fillText('Ei,', cx, 455); x.globalAlpha = 1;
-    x.font = `600 84px ${FS}`; x.fillText(cabe(x, pessoa, 940), cx, 545);
-    yChamada = 625;
+    x.font = `600 84px ${FS}`; x.fillText(cabe(x, pessoa, 940), cx, 490);
+    yChamada = 570;
   }
   x.globalAlpha = .92; x.font = `600 42px ${FB}`; espacado(x, 'VOCÊ GANHOU!', cx, yChamada, 12); x.globalAlpha = 1;
 
